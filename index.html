@@ -153,6 +153,13 @@ body { margin: 0; }
   width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
   background: var(--magenta); color: #fff; font: 700 13px var(--body);
 }
+
+.snack { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; }
+.snack img { display: block; width: 100%; height: auto; aspect-ratio: 1200 / 960; object-fit: cover; }
+.snack-text { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 4px; }
+.snack-text .section-label { margin: 0; }
+.snack-text h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 28px; line-height: 1.15; color: var(--magenta); text-wrap: balance; }
+.snack-text .sub { text-align: left; }
 </style>
 </head>
 <body>
@@ -200,6 +207,15 @@ body { margin: 0; }
     <p class="caption" id="caption">Tik op een ster om te versturen.</p>
     <p class="fine">Beoordelingen onder de 5 sterren worden volgens bureaubeleid afgerond naar 5 sterren.</p>
     <p class="status" id="status" hidden></p>
+  </section>
+
+  <section class="snack" aria-labelledby="snackH">
+    <img src="tosti.jpg" alt="Tosti met kaas en mayo, in twee driehoeken op een bord" width="1200" height="960" loading="lazy">
+    <div class="snack-text">
+      <p class="section-label">Officieel erkend</p>
+      <h2 id="snackH">Favoriete snack van Oxana</h2>
+      <p class="sub">Tosti kaas met mayo. Net als Oxana zelf: 5 van de 5 sterren.</p>
+    </div>
   </section>
 
   <section>
