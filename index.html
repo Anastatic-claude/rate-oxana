@@ -276,29 +276,89 @@ body { margin: 0; }
     const cs = getComputedStyle(document.documentElement);
     return [cs.getPropertyValue("--gold").trim(), cs.getPropertyValue("--magenta").trim(), "#ffffff", "#7a3cff", "#18c2a0"];
   }
-  // Mini tosti's as confetti (falls back to golden squares on very old browsers).
-  const TOSTI_SCALE = 2.4;
-  let tostiCache = null;
-  function tostiShapes() {
-    if (tostiCache) return tostiCache;
-    try { tostiCache = [confetti.shapeFromText({ text: "🥪", scalar: TOSTI_SCALE })]; }
-    catch (e) { tostiCache = ["square"]; }
-    return tostiCache;
+  // Mini tosti's: our own little physics, so they tumble, flutter and drift.
+  const tostiImg = new Image(); tostiImg.src = "tosti-mini.png";
+  let tc = null, tctx = null, parts = [], raf = 0, lastT = 0;
+  function sizeCanvas() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    tc.width = innerWidth * dpr; tc.height = innerHeight * dpr;
+    tctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
+  function ensureCanvas() {
+    if (tc) return;
+    tc = document.createElement("canvas");
+    tc.setAttribute("aria-hidden", "true");
+    tc.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:40";
+    document.body.appendChild(tc); tctx = tc.getContext("2d");
+    sizeCanvas(); addEventListener("resize", sizeCanvas);
+  }
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  function spawn(x, y, vx, vy) {
+    parts.push({
+      x, y, vx, vy,
+      size: rnd(30, 58),
+      rot: rnd(0, Math.PI * 2), vr: rnd(-0.12, 0.12),          // spin
+      flip: rnd(0, Math.PI * 2), vf: rnd(0.04, 0.14),          // tumbling (3D flip)
+      sway: rnd(0.8, 2.6), sf: rnd(0.025, 0.07), ph: rnd(0, 6.3), // side-to-side flutter
+      wind: rnd(-0.6, 0.6), term: rnd(1.6, 3.4),               // drift and floaty fall speed
+      t: 0, life: rnd(260, 380)
+    });
+  }
+  function tostiBurst(cx, cy) {
+    for (let i = 0; i < 26; i++) {
+      const a = rnd(0, Math.PI * 2), sp = rnd(5, 13);
+      spawn(cx, cy, Math.cos(a) * sp, Math.sin(a) * sp - 3);
+    }
+  }
+  function tostiRain(n) {
+    for (let i = 0; i < n; i++) spawn(rnd(-20, innerWidth + 20), rnd(-160, -40), rnd(-2, 2), rnd(0.5, 2.5));
+  }
+  function step(now) {
+    const dt = Math.min(2.5, (now - (lastT || now)) / 16.7 || 1); lastT = now;
+    tctx.clearRect(0, 0, innerWidth, innerHeight);
+    const ready = tostiImg.complete && tostiImg.naturalWidth;
+    const ratio = ready ? tostiImg.naturalHeight / tostiImg.naturalWidth : 0.7;
+    parts = parts.filter((p) => {
+      p.t += dt;
+      p.vx = p.vx * Math.pow(0.97, dt) + p.wind * 0.02 * dt;
+      p.vy = p.vy * Math.pow(0.97, dt) + 0.22 * dt;
+      if (p.vy > p.term) p.vy = p.term + (p.vy - p.term) * Math.pow(0.9, dt);
+      p.x += (p.vx + Math.sin(p.t * p.sf + p.ph) * p.sway) * dt;
+      p.y += p.vy * dt;
+      p.rot += (p.vr + Math.sin(p.t * p.sf + p.ph) * 0.02) * dt;
+      p.flip += p.vf * dt;
+      const fade = Math.min(1, (p.life - p.t) / 60);
+      if (fade <= 0 || p.y > innerHeight + 80) return false;
+      if (ready) {
+        tctx.save();
+        tctx.globalAlpha = fade;
+        tctx.translate(p.x, p.y); tctx.rotate(p.rot);
+        tctx.scale(Math.cos(p.flip) * 0.85 + (Math.cos(p.flip) >= 0 ? 0.15 : -0.15), 1);
+        tctx.drawImage(tostiImg, -p.size / 2, -p.size * ratio / 2, p.size, p.size * ratio);
+        tctx.restore();
+      }
+      return true;
+    });
+    raf = parts.length ? requestAnimationFrame(step) : 0;
+    if (!raf) { lastT = 0; tctx.clearRect(0, 0, innerWidth, innerHeight); }
+  }
+  function startLoop() { if (!raf) raf = requestAnimationFrame(step); }
+
   function party() {
     const wrap = $("portraitWrap");
     wrap.classList.remove("party"); void wrap.offsetWidth; wrap.classList.add("party");
-    if (typeof confetti !== "function" || reduce) return;
+    if (reduce) return;
     const r = wrap.getBoundingClientRect();
-    const origin = { x: (r.left + r.width / 2) / innerWidth, y: (r.top + r.height / 2) / innerHeight };
-    for (let a = 0; a < 360; a += 45) {
-      confetti({ particleCount: 12, angle: a, spread: 38, startVelocity: 30, ticks: 200, gravity: 0.8,
-        origin, shapes: tostiShapes(), scalar: TOSTI_SCALE, flat: true });
-      confetti({ particleCount: 8, angle: a, spread: 38, startVelocity: 32, ticks: 180, gravity: 0.8,
-        origin, colors: ["#fff6d8", "#ffd23f", "#f2b100"], shapes: ["circle"], scalar: 1 });
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    ensureCanvas();
+    tostiBurst(cx, cy);
+    setTimeout(() => { tostiRain(34); startLoop(); }, 250);
+    startLoop();
+    if (typeof confetti === "function") {
+      confetti({ particleCount: 70, spread: 360, startVelocity: 28, ticks: 180, gravity: 0.7,
+        origin: { x: cx / innerWidth, y: cy / innerHeight },
+        colors: ["#fff6d8", "#ffd23f", "#f2b100"], shapes: ["circle"], scalar: 0.9 });
     }
-    setTimeout(() => confetti({ particleCount: 60, spread: 120, startVelocity: 45, origin: { x: 0.5, y: 0.1 },
-      shapes: tostiShapes(), scalar: TOSTI_SCALE, flat: true }), 250);
   }
   function celebrate(sound) { if (sound) wow(); party(); }
 
