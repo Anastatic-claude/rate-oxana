@@ -170,6 +170,9 @@ body { margin: 0; }
 }
 .bday-card .big { font-family: var(--display); font-size: clamp(40px, 12vw, 58px); line-height: 1; margin: 0; text-wrap: balance; color: #fff; }
 .bday-card p { margin: 0; font-size: 17px; max-width: 34ch; }
+.bday-card .age { font-family: var(--display); font-size: clamp(26px, 7vw, 34px); line-height: 1.1; color: var(--gold); }
+:root[data-theme="dark"] .bday-card .age { color: #ffe27a; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .bday-card .age { color: #ffe27a; } }
 .bday-card .btn { background: var(--gold); border-color: var(--gold); color: #2b0f2f; font-size: 16px; padding: 11px 20px; }
 .bday-card .btn:focus-visible { outline-color: #fff; }
 .bday-card .row { justify-content: center; }
@@ -196,7 +199,8 @@ body { margin: 0; }
 
   <section class="bday-card" id="bdayCard" hidden aria-labelledby="bdayH">
     <p class="big" id="bdayH">Hiep hiep hoera!</p>
-    <p>Oxana is vandaag jarig. Geef haar 5 sterren en een verjaardagswens als cadeau.</p>
+    <p class="age" id="bdayAge">Oxana wordt 19!</p>
+    <p>Geef haar 5 sterren en een verjaardagswens als cadeau.</p>
     <div class="row">
       <button class="btn" id="partyBtn" type="button">Start het feest</button>
     </div>
@@ -451,7 +455,9 @@ body { margin: 0; }
     document.querySelector('label[for="note"]').firstChild.textContent = "Je verjaardagswens (optioneel)\n      ";
     $("note").placeholder = "Gefeliciteerd! Op naar nog een jaar vol tosti's met mayo.";
     $("countLine").dataset.bday = "1";
-    document.title = "Oxana is jarig!";
+    const age = nowNL.getFullYear() - 2007; // born 23 October 2007
+    $("bdayAge").textContent = "Oxana wordt " + age + "!";
+    document.title = "Oxana wordt " + age + "!";
     const fl = [...document.querySelectorAll(".section-label")].find((e) => e.textContent.trim() === "Laatste beoordelingen");
     if (fl) fl.textContent = "Verjaardagswensen";
     $("partyBtn").addEventListener("click", playSong);
@@ -575,7 +581,7 @@ body { margin: 0; }
   /* ---------- Invite ---------- */
   const pageUrl = location.href.split("#")[0];
   const inviteMsg = BDAY
-    ? "Oxana is vandaag jarig! Feliciteer haar met 5 sterren en een verjaardagswens: " + pageUrl
+    ? "Oxana is vandaag jarig en wordt " + (nowNL.getFullYear() - 2007) + "! Feliciteer haar met 5 sterren en een verjaardagswens: " + pageUrl
     : "Je bent uitgenodigd om Oxana als mens te beoordelen. Het kost 3 seconden en elk antwoord is goed. " + pageUrl;
   $("inviteText").textContent = inviteMsg;
   $("copyBtn").addEventListener("click", () => {
