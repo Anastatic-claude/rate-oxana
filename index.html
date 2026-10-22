@@ -37,6 +37,7 @@
   --glow: rgba(255, 198, 41, .28); color-scheme: dark;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body {
   background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.5;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
@@ -409,7 +410,10 @@ body { margin: 0; }
 
   /* ---------- Birthday mode: 23 October (Dutch time), or preview with #jarig ---------- */
   const nowNL = (() => { try { return new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Amsterdam" })); } catch (e) { return new Date(); } })();
-  const BDAY = (nowNL.getMonth() === 9 && nowNL.getDate() === 23) || location.hash === "#jarig";
+  const preview = /jarig/i.test(location.hash + location.search);
+  const BDAY = (nowNL.getMonth() === 9 && nowNL.getDate() === 23) || preview;
+  // Typing #jarig after the link doesn't reload the page by itself, so do it here.
+  addEventListener("hashchange", () => { if (/jarig/i.test(location.hash) !== preview) location.reload(); });
 
   // Happy Birthday melody, synthesized; ends with the WOW and a big party.
   let songPlaying = false;
@@ -443,7 +447,7 @@ body { margin: 0; }
   }
 
   if (BDAY) {
-    $("bdayCard").hidden = false; $("hat").hidden = false; $("bunting").hidden = false;
+    ["bdayCard", "hat", "bunting"].forEach((id) => $(id).removeAttribute("hidden"));
     document.querySelector(".hero").classList.add("bday-hero");
     const cols = ["#d6136f", "#f2b100", "#7a3cff", "#18c2a0", "#ff7a3d"];
     let f = ""; for (let i = 0; i < 14; i++) {
