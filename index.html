@@ -292,6 +292,29 @@ input[type=number]:focus-visible { outline: 2px solid var(--magenta); outline-of
   }
 }
 .wrap { position: relative; z-index: 1; }
+
+/* Donation pop-up after voting */
+.modal-back {
+  position: fixed; inset: 0; z-index: 60; display: grid; place-items: center;
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  background: rgba(43, 15, 47, .45); animation: fadein .2s ease-out;
+}
+.modal {
+  width: min(400px, 100%); background: var(--surface); color: var(--ink); border-radius: 24px;
+  padding: 24px 22px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.3); border: 3px solid var(--gold); animation: popin .45s cubic-bezier(.3,1.5,.5,1);
+}
+.modal-img { width: 150px; height: auto; margin-top: -70px; filter: drop-shadow(0 8px 14px rgba(0,0,0,.25)); animation: wob 3.2s ease-in-out infinite; }
+.modal-h { font-family: var(--display); font-weight: 400; font-size: clamp(32px, 9vw, 42px); line-height: 1.05; margin: 0; color: var(--magenta); text-wrap: balance; }
+.modal-p { margin: 0; font-size: 17px; max-width: 30ch; text-wrap: balance; }
+.modal-actions { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-top: 6px; }
+.modal-actions .btn { width: 100%; font-size: 15px; }
+.modal-actions .btn:not(.primary) { border-color: transparent; color: var(--muted); font-weight: 500; }
+.donate.flash { animation: flash 1.6s ease-out; }
+@keyframes fadein { from { opacity: 0; } }
+@keyframes popin { from { transform: scale(.6) translateY(40px); opacity: 0; } }
+@keyframes flash { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 25% { box-shadow: 0 0 0 6px var(--gold); } }
+@media (prefers-reduced-motion: reduce) { .modal-back, .modal, .modal-img, .donate.flash { animation: none; } }
 </style>
 </head>
 <body>
@@ -430,6 +453,18 @@ input[type=number]:focus-visible { outline: 2px solid var(--magenta); outline-of
 </div>
 
 <div class="toast" id="toast" hidden></div>
+
+<div class="modal-back" id="askBack" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="askH" aria-describedby="askP">
+    <img class="modal-img" src="tosti-mayo.png?v=20261025b" alt="" width="240" height="143">
+    <h2 class="modal-h" id="askH">Wow, 5 sterren!</h2>
+    <p class="modal-p" id="askP">Uitstekende smaak. Wil je Oxana ook trakteren op een tosti met mayo?</p>
+    <div class="modal-actions">
+      <button class="btn primary" id="askYes" type="button">Trakteer Oxana</button>
+      <button class="btn" id="askNo" type="button">Nee, mijn sterren zeggen genoeg</button>
+    </div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
@@ -653,6 +688,7 @@ input[type=number]:focus-visible { outline: 2px solid var(--magenta); outline-of
     myIds.add(data.id); addVote(data);
     $("note").value = "";
     st.textContent = "Ingediend. Je gaf Oxana 5/5.";
+    maybeAskDonation();
   }
 
   /* ---------- Rendering ---------- */
@@ -854,6 +890,47 @@ input[type=number]:focus-visible { outline: 2px solid var(--magenta); outline-of
       celebrate(true);
     });
   }
+
+  /* ---------- "Wil je ook doneren?" pop-up after a vote ---------- */
+  const ASK_LINES = [
+    ["Wow, 5 sterren!", "Uitstekende smaak. Wil je Oxana ook trakteren op een tosti met mayo?"],
+    ["Goede keuze!", "Sterren zijn gratis, tosti's helaas niet. Trakteer je Oxana op eentje?"],
+    ["5 sterren, respect!", "Maak het compleet: een tosti met mayo voor Oxana uit het Tosti-fonds?"]
+  ];
+  let askOpen = false, lastFocus = null;
+  function maybeAskDonation() {
+    if (!(donateReady && sb) || askOpen) return;
+    const today = new Date().toDateString();
+    if (LS.get("oxana-asked") === today) return;      // at most once a day per visitor
+    LS.set("oxana-asked", today);
+    const [h, p] = ASK_LINES[Math.floor(Math.random() * ASK_LINES.length)];
+    $("askH").textContent = h; $("askP").textContent = p;
+    setTimeout(() => {                                // let the WOW and tosti's play first
+      lastFocus = document.activeElement; askOpen = true;
+      $("askBack").hidden = false; $("askYes").focus();
+    }, 2200);
+  }
+  function closeAsk() {
+    if (!askOpen) return;
+    askOpen = false; $("askBack").hidden = true;
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  $("askNo").addEventListener("click", () => { closeAsk(); toast("Helemaal goed. Je sterren zijn genoteerd!"); });
+  $("askYes").addEventListener("click", () => {
+    closeAsk();
+    const d = $("donate");
+    d.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+    d.classList.remove("flash"); void d.offsetWidth; d.classList.add("flash");
+  });
+  $("askBack").addEventListener("click", (e) => { if (e.target === $("askBack")) closeAsk(); });
+  document.addEventListener("keydown", (e) => {
+    if (!askOpen) return;
+    if (e.key === "Escape") closeAsk();
+    if (e.key === "Tab") {                            // keep focus inside the pop-up
+      const f = [$("askYes"), $("askNo")], i = f.indexOf(document.activeElement);
+      e.preventDefault(); f[(i + (e.shiftKey ? f.length - 1 : 1)) % f.length].focus();
+    }
+  });
 
   /* ---------- Boot ---------- */
   render();
