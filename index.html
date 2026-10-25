@@ -259,6 +259,11 @@ body { margin: 0; }
 .amount:focus-visible { outline: 3px solid var(--magenta); outline-offset: 2px; }
 .amount b { font-family: var(--display); font-weight: 400; font-size: 26px; line-height: 1.1; color: var(--magenta); font-variant-numeric: tabular-nums; }
 .amount .txt span { font-size: 13px; color: var(--muted); }
+.amount[aria-pressed="true"] { border-color: var(--magenta); box-shadow: 0 0 0 3px var(--magenta) inset; background: var(--surface); }
+.paybox { display: flex; flex-direction: column; align-items: stretch; gap: 8px; animation: popin .4s cubic-bezier(.3,1.5,.5,1); }
+.pay-choice { margin: 0; font-weight: 700; text-align: center; }
+.btn.pay { text-align: center; text-decoration: none; font-size: 17px; padding: 13px 18px; }
+@media (prefers-reduced-motion: reduce) { .paybox { animation: none; } }
 .donate-form { display: flex; flex-direction: column; gap: 12px; border-top: 1px dashed var(--line); padding-top: 14px; }
 .donate-q { margin: 0; font-weight: 700; }
 input[type=number] {
@@ -392,7 +397,11 @@ input[type=number]:focus-visible { outline: 2px solid var(--magenta); outline-of
     <p class="section-label">Tosti-fonds</p>
     <h2 id="donateH">Vind je Oxana ook zo geweldig?</h2>
     <p class="sub left">Laat dan je waardering blijken in euro's! Kies een bedrag, betaal en zet daarna je naam op de erelijst.</p>
-    <div class="amounts" id="amounts"></div>
+    <div class="amounts" id="amounts" role="group" aria-label="Kies een bedrag"></div>
+    <div class="paybox" id="payBox" hidden>
+      <p class="pay-choice" id="payChoice"></p>
+      <a class="btn primary pay" id="payLink" href="#" target="_blank" rel="noopener">Naar betalen</a>
+    </div>
     <form class="donate-form" id="donateForm" hidden>
       <p class="donate-q">Gedoneerd? Zet je naam op de erelijst.</p>
       <label for="dName">Je naam
@@ -814,6 +823,10 @@ input[type=number]:focus-visible { outline: 2px solid var(--magenta); outline-of
     }
     if (fx === "coin") conf({ particleCount: 50, spread: 80, startVelocity: 30, colors: ["#f2b100", "#ffd23f", "#8a6200"], shapes: ["circle"], scalar: 1.2 });
   }
+  $("payLink").addEventListener("click", () => {
+    $("donateForm").hidden = false;
+    setTimeout(() => $("donateForm").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "nearest" }), 300);
+  });
   function renderAmounts() {
     const age = nowNL.getFullYear() - 2007;
     const opts = [
@@ -825,8 +838,8 @@ input[type=number]:focus-visible { outline: 2px solid var(--magenta); outline-of
     ];
     const box = $("amounts"); box.textContent = "";
     opts.forEach((o) => {
-      const a = document.createElement("a");
-      a.className = o.v == null ? "amount other" : "amount"; a.href = payLink(o.v); a.target = "_blank"; a.rel = "noopener";
+      const a = document.createElement("button"); a.type = "button";
+      a.className = o.v == null ? "amount other" : "amount"; a.setAttribute("aria-pressed", "false");
       const b = document.createElement("b"); b.textContent = o.v == null ? "€ …" : eur(o.v);
       const sp = document.createElement("span"); sp.textContent = o.label;
       const txt = document.createElement("span"); txt.className = "txt"; txt.append(b, sp);
@@ -841,8 +854,13 @@ input[type=number]:focus-visible { outline: 2px solid var(--magenta); outline-of
         a.appendChild(pop); setTimeout(() => pop.remove(), 700);
         const ir = ico.getBoundingClientRect();
         donateFx(o.fx, ir.left + ir.width / 2, ir.top + ir.height / 2);
-        $("donateForm").hidden = false;
-        if (o.v != null) $("dAmount").value = o.v.toFixed(2);
+        // Step 2: show the pay button (the payment opens only when they tap it).
+        box.querySelectorAll(".amount").forEach((x) => x.setAttribute("aria-pressed", String(x === a)));
+        $("payChoice").textContent = o.v == null ? "Jij kiest het bedrag. Top!" : eur(o.v) + " voor " + o.label + ". Top!";
+        $("payLink").href = payLink(o.v);
+        $("payLink").textContent = o.v == null ? "Naar betalen" : "Naar betalen (" + eur(o.v) + ")";
+        $("payBox").hidden = false;
+        if (o.v != null) $("dAmount").value = o.v.toFixed(2); else $("dAmount").value = "";
         $("dName").value = $("dName").value || LS.get("oxana-name") || "";
       });
       box.appendChild(a);
@@ -875,7 +893,7 @@ input[type=number]:focus-visible { outline: 2px solid var(--magenta); outline-of
       // Links like Tikkie can't take an amount, so tell people to type it in themselves.
       const hint = document.createElement("p"); hint.className = "fine left";
       hint.textContent = "Je kiest het bedrag zelf in het betaalscherm dat opent. De knoppen zijn een suggestie.";
-      $("amounts").after(hint);
+      $("payLink").after(hint);
     }
     let dBusy = false;
     $("donateForm").addEventListener("submit", async (e) => {
