@@ -315,7 +315,7 @@ input[type=number]:focus-visible { outline: 2px solid var(--magenta); outline-of
         <text><textPath href="#ring" textLength="700">★ GECERTIFICEERD 5.0 ★ GETOETST ★ GEEN KRITIEK ★ GECERTIFICEERD 5.0 ★ GETOETST ★ GEEN KRITIEK </textPath></text>
       </svg>
       <div class="portrait" id="portrait">
-        <img src="oxana.jpg" alt="Portret van Oxana" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'mono',textContent:'O'}))">
+        <img src="oxana.jpg?v=20261025b" alt="Portret van Oxana" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'mono',textContent:'O'}))">
       </div>
     </div>
     <h1>Oxana</h1>
@@ -375,7 +375,7 @@ input[type=number]:focus-visible { outline: 2px solid var(--magenta); outline-of
   </section>
 
   <section class="snack" aria-labelledby="snackH">
-    <img src="tosti.jpg" alt="Tosti met gesmolten kaas en een bakje mayo op een bord" width="1200" height="900" loading="lazy">
+    <img src="tosti.jpg?v=20261025b" alt="Tosti met gesmolten kaas en een bakje mayo op een bord" width="1200" height="900" loading="lazy">
     <div class="snack-text">
       <p class="section-label">Officieel erkend</p>
       <h2 id="snackH">Favoriete snack van Oxana</h2>
@@ -429,7 +429,7 @@ input[type=number]:focus-visible { outline: 2px solid var(--magenta); outline-of
   }
 
   /* ---------- Sound ---------- */
-  const wowEl = new Audio("wow.mp3"); wowEl.preload = "auto";
+  const wowEl = new Audio("wow.mp3?v=20261025b"); wowEl.preload = "auto";
   function unlockAudio() {
     try { wowEl.muted = true; const p = wowEl.play(); if (p) p.then(() => { wowEl.pause(); wowEl.currentTime = 0; wowEl.muted = false; }, () => { wowEl.muted = false; }); } catch (e) {}
   }
@@ -442,7 +442,7 @@ input[type=number]:focus-visible { outline: 2px solid var(--magenta); outline-of
     return [cs.getPropertyValue("--gold").trim(), cs.getPropertyValue("--magenta").trim(), "#ffffff", "#7a3cff", "#18c2a0"];
   }
   // Mini tosti's: our own little physics, so they tumble, flutter and drift.
-  const tostiImg = new Image(); tostiImg.src = "tosti-mayo.png";
+  const tostiImg = new Image(); tostiImg.src = "tosti-mayo.png?v=20261025b";
   let tc = null, tctx = null, parts = [], raf = 0, lastT = 0;
   function sizeCanvas() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -722,14 +722,14 @@ input[type=number]:focus-visible { outline: 2px solid var(--magenta); outline-of
     return donateUrl.replace("{bedrag}", String(amount.toFixed(2)).replace(/\.00$/, ""));
   }
   const ICONS = {
-    tosti: '<img src="tosti-195.png" alt="">',
-    mayo: '<img src="tosti-mayo.png" alt="">',
+    tosti: '<img src="tosti-195.png?v=20261025b" alt="">',
+    mayo: '<img src="tosti-mayo.png?v=20261025b" alt="">',
     candle: '<svg viewBox="0 0 50 50"><circle class="glow" cx="25" cy="14" r="11" fill="#ffd23f" opacity=".45"/>' +
       '<path class="flame" d="M25,4 C30,11 30,16 25,19 C20,16 20,11 25,4 Z" fill="#ff8a1e" stroke="#2b0f2f" stroke-width="1.5"/>' +
       '<line x1="25" y1="19" x2="25" y2="22" stroke="#2b0f2f" stroke-width="2"/>' +
       '<rect x="19" y="22" width="12" height="24" rx="3" fill="#d6136f" stroke="#2b0f2f" stroke-width="2"/>' +
       '<path d="M19,30 L31,26 M19,38 L31,34" stroke="#fff" stroke-width="2.5"/></svg>',
-    fountain: '<img src="fontein.png" alt=""><svg class="drops" viewBox="0 0 50 50"><circle class="drop" cx="25" cy="4" r="2.6" fill="#fff6d8" stroke="#c9b26e" stroke-width="1" style="--dx:-6px"/><circle class="drop" cx="25" cy="4" r="2.2" fill="#fff6d8" stroke="#c9b26e" stroke-width="1" style="--dx:6px"/><circle class="drop" cx="25" cy="4" r="2.6" fill="#fff6d8" stroke="#c9b26e" stroke-width="1" style="--dx:-3px"/><circle class="drop" cx="25" cy="4" r="2.2" fill="#fff6d8" stroke="#c9b26e" stroke-width="1" style="--dx:4px"/><circle class="drop" cx="25" cy="4" r="2" fill="#fff6d8" stroke="#c9b26e" stroke-width="1" style="--dx:-8px"/><circle class="drop" cx="25" cy="4" r="2.4" fill="#fff6d8" stroke="#c9b26e" stroke-width="1" style="--dx:8px"/></svg>',
+    fountain: '<img src="fontein.png?v=20261025b" alt=""><svg class="drops" viewBox="0 0 50 50"><circle class="drop" cx="25" cy="4" r="2.6" fill="#fff6d8" stroke="#c9b26e" stroke-width="1" style="--dx:-6px"/><circle class="drop" cx="25" cy="4" r="2.2" fill="#fff6d8" stroke="#c9b26e" stroke-width="1" style="--dx:6px"/><circle class="drop" cx="25" cy="4" r="2.6" fill="#fff6d8" stroke="#c9b26e" stroke-width="1" style="--dx:-3px"/><circle class="drop" cx="25" cy="4" r="2.2" fill="#fff6d8" stroke="#c9b26e" stroke-width="1" style="--dx:4px"/><circle class="drop" cx="25" cy="4" r="2" fill="#fff6d8" stroke="#c9b26e" stroke-width="1" style="--dx:-8px"/><circle class="drop" cx="25" cy="4" r="2.4" fill="#fff6d8" stroke="#c9b26e" stroke-width="1" style="--dx:8px"/></svg>',
     coin: '<svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="19" fill="#f2b100" stroke="#2b0f2f" stroke-width="2.5"/>' +
       '<circle cx="25" cy="25" r="14" fill="none" stroke="#8a6200" stroke-width="1.5" stroke-dasharray="2 3"/>' +
       '<text x="25" y="32" text-anchor="middle" font-family="Georgia,serif" font-size="20" font-weight="700" fill="#2b0f2f">€</text></svg>'
