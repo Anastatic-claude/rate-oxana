@@ -871,6 +871,12 @@ input[type=number]:focus-visible { outline: 2px solid var(--magenta); outline-of
   if (donateReady && sb) {
     $("donate").hidden = false;
     renderAmounts(); loadFame();
+    if (!donateUrl.includes("{bedrag}")) {
+      // Links like Tikkie can't take an amount, so tell people to type it in themselves.
+      const hint = document.createElement("p"); hint.className = "fine left";
+      hint.textContent = "Je kiest het bedrag zelf in het betaalscherm dat opent. De knoppen zijn een suggestie.";
+      $("amounts").after(hint);
+    }
     let dBusy = false;
     $("donateForm").addEventListener("submit", async (e) => {
       e.preventDefault(); if (dBusy) return;
