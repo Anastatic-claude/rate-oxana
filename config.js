@@ -7,5 +7,5 @@ window.RATE_OXANA_CONFIG = {
   // Zet {bedrag} in de link als de betaaldienst een bedrag in de link ondersteunt, bijvoorbeeld:
   //   "https://bunq.me/oxana/{bedrag}"      of      "https://paypal.me/oxana/{bedrag}EUR"
   // Een Tikkie-link plak je gewoon zonder {bedrag}.
-  DONATE_URL: "PLAK-HIER-JE-BETAALLINK"
+  DONATE_URL: "https://tikkie.me/pay/3hicducrf7jodd08e0do"
 };
